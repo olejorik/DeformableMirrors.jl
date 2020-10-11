@@ -1,0 +1,13 @@
+name = "DeformableMirrors"
+uuid = "1974dd6c-e1e0-4652-a3c9-2f0e18898c7e"
+authors = ["Oleg Soloviev"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
