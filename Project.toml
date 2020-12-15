@@ -3,6 +3,9 @@ uuid = "1974dd6c-e1e0-4652-a3c9-2f0e18898c7e"
 authors = ["Oleg Soloviev"]
 version = "0.1.0"
 
+[deps]
+Luxor = "ae8d54c2-7ccd-5906-9d76-62fc9837b5bc"
+
 [compat]
 julia = "1"
 
