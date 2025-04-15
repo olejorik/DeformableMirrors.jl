@@ -4,9 +4,10 @@ authors = ["Oleg Soloviev"]
 version = "0.1.0"
 
 [deps]
-Luxor = "ae8d54c2-7ccd-5906-9d76-62fc9837b5bc"
+GeometryBasics = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
 
 [compat]
+GeometryBasics = "0.5.7"
 julia = "1"
 
 [extras]
