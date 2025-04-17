@@ -2,6 +2,7 @@ module DeformableMirrors
 
 include("types.jl")
 include("utils.jl")
+include("visualisation.jl")
 
 export PDM30_37,
     MMDM15_37,
@@ -9,7 +10,11 @@ export PDM30_37,
     working_aperture,
     actuator_pitch,
     num_actuators,
-    set_working_aperture!
+    set_working_aperture!,
+    actuators,
+    pdmplot,
+    pdmplot!
+
 
 const PDM30_37 = PDM(hexagonal_grid_hexnums(3, 4.3), 30.0, [22.0], 4.3)
 const MMDM15_37 = MMDM(

@@ -30,29 +30,90 @@ function hexagonal_grid(rows::Int, cols::Int, pitch::Float64)
 end
 
 """
-    hexagonal_grid_hexnums(n, pitch; clockwise=true)
+    hexagonal_grid_hexnums(n, pitch; flat_topped=true, clockwise=true)
 
-Generate a hexagonal grid based on hexagonal numbers (1, 7, 19, etc.) and arrange the actuators starting from the central one, going clockwise by default.
+Generate a true hexagonal grid with n layers around the center.
+Each point has exactly six equidistant neighbors, forming a regular hexagonal pattern.
+All layers are properly centered around (0,0).
+Points are ordered starting from the center, then proceeding outward layer by layer.
+Within each layer, points can be optionally sorted clockwise.
+
+# Arguments
+- `n`: Number of layers around the central point.
+- `pitch`: Distance between adjacent points.
+- `flat_topped`: Whether the hexagons are flat-topped (true) or pointy-topped (false).
+- `clockwise`: Whether to sort points clockwise within each layer.
+
+# Returns
+A vector of coordinate tuples representing points in the hexagonal grid,
+ordered from center outward.
+
+# Example
+```julia
+grid = hexagonal_grid_hexnums(3, 1.0)
+```
 """
-function hexagonal_grid_hexnums(n::Int, pitch::Float64; clockwise=true)
-    points = Vector{Tuple{Float64,Float64}}()
-    center = (0.0, 0.0)
-    push!(points, center) # Add the central point
+function hexagonal_grid_hexnums(n::Int, pitch::Float64; flat_topped=true, clockwise=true)
+    # Create a dictionary to group points by layer
+    points_by_layer = Dict{Int,Vector{Tuple{Float64,Float64}}}()
 
-    for layer in 1:n
-        for i in 0:(6 * layer - 1)
-            angle = 2π * i / (6 * layer)
-            x = layer * pitch * cos(angle)
-            y = layer * pitch * sin(angle)
-            push!(points, (x, y))
+    # Initialize with the center point
+    points_by_layer[0] = [(0.0, 0.0)]
+
+    # Using cube coordinates (q, r, s) where q + r + s = 0
+    for q in (-n):n
+        for r in max(-n, -q - n):min(n, -q + n)
+            # Calculate s to satisfy q + r + s = 0
+            s = -q - r
+
+            # Determine the layer (distance from origin in cube coordinates)
+            layer = max(abs(q), abs(r), abs(s))
+
+            # Skip the center point (already added)
+            if layer == 0
+                continue
+            end
+
+            # Check if this point is within n steps from origin
+            if layer <= n
+                # Convert cube coordinates to Cartesian
+                # Simplified expressions for better readability and efficiency
+                if flat_topped
+                    x = pitch * (sqrt(3) / 2 * q)
+                    y = pitch * (0.5 * q + r)
+                else
+                    x = pitch * (q + 0.5 * r)
+                    y = pitch * (sqrt(3) / 2 * r)
+                end
+
+                # Add to the appropriate layer
+                if !haskey(points_by_layer, layer)
+                    points_by_layer[layer] = Vector{Tuple{Float64,Float64}}()
+                end
+                push!(points_by_layer[layer], (x, y))
+            end
         end
     end
 
+    # Sort points within each layer if requested
     if clockwise
-        points = sort(points; by=p -> atan(p[2] - center[2], p[1] - center[1]))
+        center = (0.0, 0.0)
+        for layer in keys(points_by_layer)
+            if layer > 0  # Skip center point
+                sort!(
+                    points_by_layer[layer]; by=p -> atan(p[2] - center[2], p[1] - center[1])
+                )
+            end
+        end
     end
 
-    return points
+    # Combine all points in order of increasing layer
+    ordered_points = Vector{Tuple{Float64,Float64}}()
+    for layer in sort(collect(keys(points_by_layer)))
+        append!(ordered_points, points_by_layer[layer])
+    end
+
+    return ordered_points
 end
 
 """
