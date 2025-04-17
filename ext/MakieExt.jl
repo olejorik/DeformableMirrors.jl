@@ -5,6 +5,7 @@ using GeometryBasics: Point2, Circle, decompose, Polygon
 using DeformableMirrors
 
 import DeformableMirrors: pdmplot, pdmplot!, mmdmplot, mmdmplot!
+import Makie: Colorbar
 
 
 
@@ -14,8 +15,8 @@ import DeformableMirrors: pdmplot, pdmplot!, mmdmplot, mmdmplot!
         show_numbers=false,
           title="PDM Visualization",
           colormap=:coolwarm,
-          clip_low_color=:blue,
-          clip_high_color=:red,
+          lowclip=:blue,
+          highclip=:red,
           colorrange=(-1.0, 1.0),
           markersize=30,
     )
@@ -28,11 +29,12 @@ function Makie.plot!(plot::PDMPlot)
 else
     controls = zeros(Float64, num_actuators(pdm[]))
 end
-    colormap = plot[:colormap][]
-    markersize = plot[:markersize][]
-    colorrange = plot[:colorrange][]
-    clip_low_color = plot[:clip_low_color][]
-    clip_high_color = plot[:clip_high_color][]
+    colormap = plot[:colormap]
+    markersize = plot[:markersize]
+    offset = @lift (0, - (max($markersize / 4.0, 6)))
+    colorrange = plot[:colorrange]
+    lowclip = plot[:lowclip]
+    highclip = plot[:highclip]
 
     # Extract actuator positions
     positions = pdm[].actuator_positions
@@ -45,18 +47,20 @@ end
     scatter!(plot, x_coords, y_coords; markersize=markersize, color=controls, 
     colormap = colormap, 
     colorrange = colorrange,
-    lowclip = clip_low_color,
-    highclip = clip_high_color,
+    lowclip = lowclip,
+    highclip = highclip,
     label="Actuators")
     ax = current_axis()
     ax.aspect = DataAspect()
 
 
     # Optionally show actuator numbers
-    if plot[:show_numbers][]
+    actlabels = @lift if $(plot[:show_numbers])
         for (i, (x, y)) in enumerate(zip(x_coords, y_coords))
-            text!(plot, x, y; text="$i", align=(:center, :top), color=:black, offset=(0, -markersize / 2))
+            text!(plot, x, y; text="$i", align=(:center, :top), color=:black, offset=offset)
         end
+    else 
+        nothing
     end
 
     # Plot full aperture as a circle
@@ -83,7 +87,10 @@ end
     return plot
 end
 
+Colorbar(fig_or_scene, pl::PDMPlot; kwargs...) = Colorbar(fig_or_scene; colormap = pl.colormap, colorrange = pl.colorrange, highclip = pl.highclip, lowclip = pl.lowclip, kwargs...)
+
 # Define a plotting recipe for MMDM
+# 
 @recipe(MMDMPlot, mmdm #, controls
 ) do scene
     Attributes(
@@ -202,6 +209,8 @@ function Makie.plot!(plot::MMDMPlot)
     axislegend(ax)
     return plot
 end
+
+Colorbar(fig_or_scene, pl::MMDMPlot; kwargs...) = Colorbar(fig_or_scene; colormap = pl.colormap, colorrange = pl.colorrange, highclip = pl.clip_high_color, lowclip = pl.clip_low_color, kwargs...)
 
 export pdmplot, pdmplot!, mmdmplot, mmdmplot!
 
