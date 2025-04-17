@@ -27,8 +27,7 @@ const mil_to_mm = 0.0254
 const MMDM15_37 = MMDM(
     honeycomb_hexagons(3, mil_to_mm * 70, mil_to_mm * 8),
     15.0,
-    [10.0],
-    pitch_mm,
+    [10.0]
 )
 
 end

@@ -49,7 +49,6 @@ struct MMDM <: DeformableMirror
     actuator_polygons::Vector{Polygon} # List of actuator polygons as GeometryBasics.Polygon
     full_aperture::Float64
     working_aperture::Vector{Float64} # Mutable array for working aperture
-    actuator_pitch::Float64
 end
 
 """
