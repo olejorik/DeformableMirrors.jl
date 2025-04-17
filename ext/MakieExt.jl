@@ -6,13 +6,29 @@ using DeformableMirrors
 
 import DeformableMirrors: pdmplot, pdmplot!
 
+
+
 # Define a plotting recipe for PDM
-@recipe(PDMPlot, pdm) do scene
-    Attributes(; show_numbers=false, title="PDM Visualization")
+@recipe(PDMPlot, pdm, controls) do scene
+    Attributes(
+        show_numbers=false,
+          title="PDM Visualization",
+          colormap=:coolwarm,
+          clip_low_color=:blue,
+          clip_high_color=:red,
+          colorrange=(-1.0, 1.0),
+          markersize=30,
+    )
 end
 
 function Makie.plot!(plot::PDMPlot)
     pdm = plot[1]
+    controls = plot[2]
+    colormap = plot[:colormap][]
+    markersize = plot[:markersize][]
+    colorrange = plot[:colorrange][]
+    clip_low_color = plot[:clip_low_color][]
+    clip_high_color = plot[:clip_high_color][]
 
     # Extract actuator positions
     positions = pdm[].actuator_positions
@@ -22,7 +38,12 @@ function Makie.plot!(plot::PDMPlot)
 
 
     # Plot actuators
-    scatter!(plot, x_coords, y_coords; markersize=10, color=:blue, label="Actuators")
+    scatter!(plot, x_coords, y_coords; markersize=markersize, color=controls, 
+    colormap = colormap, 
+    colorrange = colorrange,
+    lowclip = clip_low_color,
+    highclip = clip_high_color,
+    label="Actuators")
     ax = current_axis()
     ax.aspect = DataAspect()
 
@@ -30,7 +51,7 @@ function Makie.plot!(plot::PDMPlot)
     # Optionally show actuator numbers
     if plot[:show_numbers][]
         for (i, (x, y)) in enumerate(zip(x_coords, y_coords))
-            text!(ax, x, y; text="$i", align=(:center, :top), color=:black, offset=(0, -6))
+            text!(ax, x, y; text="$i", align=(:center, :top), color=:black, offset=(0, -markersize / 2))
         end
     end
 
@@ -65,6 +86,5 @@ end
 end =#
 
 export pdmplot, pdmplot!
-
 
 end # module
