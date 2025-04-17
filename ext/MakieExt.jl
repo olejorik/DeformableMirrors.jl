@@ -22,8 +22,12 @@ import DeformableMirrors: pdmplot, pdmplot!, mmdmplot, mmdmplot!
 end
 
 function Makie.plot!(plot::PDMPlot)
-    pdm = plot[1]
+    pdm = plot[1]    
+    if length(plot) > 1
     controls = plot[2]
+else
+    controls = zeros(Float64, num_actuators(pdm[]))
+end
     colormap = plot[:colormap][]
     markersize = plot[:markersize][]
     colorrange = plot[:colorrange][]
@@ -51,7 +55,7 @@ function Makie.plot!(plot::PDMPlot)
     # Optionally show actuator numbers
     if plot[:show_numbers][]
         for (i, (x, y)) in enumerate(zip(x_coords, y_coords))
-            text!(ax, x, y; text="$i", align=(:center, :top), color=:black, offset=(0, -markersize / 2))
+            text!(plot, x, y; text="$i", align=(:center, :top), color=:black, offset=(0, -markersize / 2))
         end
     end
 
@@ -80,7 +84,8 @@ function Makie.plot!(plot::PDMPlot)
 end
 
 # Define a plotting recipe for MMDM
-@recipe(MMDMPlot, mmdm, controls) do scene
+@recipe(MMDMPlot, mmdm #, controls
+) do scene
     Attributes(
         show_numbers=false,
         title="MMDM Visualization",
@@ -94,7 +99,12 @@ end
 
 function Makie.plot!(plot::MMDMPlot)
     mmdm = plot[1]
-    controls = plot[2][]
+    if length(plot) > 1
+        controls = plot[2][]
+    else
+        controls = zeros(Float64, num_actuators(mmdm[]))
+    end
+    # @show controls
     colormap = plot[:colormap][]
     colorrange = plot[:colorrange][]
     clip_low_color = plot[:clip_low_color][]
@@ -178,14 +188,16 @@ function Makie.plot!(plot::MMDMPlot)
     # Plot working aperture as a circle
     working_aperture_radius = working_aperture(mmdm[]) / 2.0
     circle_working = Circle(Point2(0.0, 0.0), working_aperture_radius)
-    lines!(
+    waplines = lines!(
         ax,
         decompose(Point2, circle_working);
         color=:green,
         linewidth=2,
         linestyle=:dash,
         label="Working Aperture",
+
     )
+    translate!(waplines, 0, 0, 1)
     
     axislegend(ax)
     return plot
