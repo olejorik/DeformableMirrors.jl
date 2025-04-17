@@ -1,6 +1,6 @@
 using GeometryBasics
 
-export hexagonal_grid, hexagon, hexagonal_grid_hexnums
+export hexagonal_grid, hexagon, hexagonal_grid_hexnums, regular_hexagon, honeycomb_hexagons
 
 """
     hexagonal_grid(rows, cols, pitch)
@@ -125,4 +125,77 @@ function hexagon(center::Tuple{Float64,Float64}, radius::Float64)
     cx, cy = center
     vertices = [(cx + radius * cos(θ), cy + radius * sin(θ)) for θ in 0:(π / 3):(2π)]
     return vertices
+end
+
+"""
+    regular_hexagon(center, inradius)
+
+Generate a regular hexagon as a Polygon, centered at `center` with the given `inradius` (distance from center to middle of each side).
+This creates a flat-sided hexagon (with a flat edge on top and bottom).
+"""
+function regular_hexagon(center::Tuple{Float64,Float64}, inradius::Float64)
+    cx, cy = center
+    vertices = Vector{Point2{Float64}}()
+    
+    # Create a flat-top hexagon (flat sides on top and bottom)
+    # Start from the top-right vertex and go clockwise
+    for i in 0:5
+        angle = 2π * i / 6 + π/2  # Start at π/2 for flat top (first point is at top-right)
+        x = cx + inradius / cos(π/6) * cos(angle)  # Circumradius = inradius / cos(π/6)
+        y = cy + inradius / cos(π/6) * sin(angle)
+        push!(vertices, Point2{Float64}(x, y))
+    end
+    return Polygon(vertices)
+end
+
+"""
+    honeycomb_hexagons(n, pitch, gap)
+
+Generate a honeycomb grid of regular hexagons with n layers.
+Each hexagon is flat-topped (one edge on top).
+
+# Arguments
+- `n`: Number of layers around the central hexagon.
+- `pitch`: Distance between adjacent hexagon centers.
+- `gap`: Gap between adjacent hexagon edges.
+
+# Returns
+A vector of Polygons representing the hexagons in the honeycomb grid.
+"""
+function honeycomb_hexagons(n::Int, pitch::Float64, gap::Float64)
+    # Calculate the circumradius (center to vertex distance)
+    # For a regular hexagon, if we want the distance between centers to be 'pitch',
+    # and the gap between adjacent hexagons to be 'gap'
+    
+    # In a honeycomb arrangement with flat-topped hexagons:
+    # - Distance between centers is 'pitch'
+    # - The circumradius for touching hexagons would be pitch/2
+    # - We need to reduce this to create a gap
+    
+    # Calculate the side length needed to maintain the specified gap
+    side_length = (pitch - gap) / sqrt(3)
+    
+    # Get the centers of the hexagons using the existing hexagonal grid function
+    # Use flat_topped=true to get proper orientation for honeycomb pattern
+    centers = hexagonal_grid_hexnums(n, pitch; flat_topped=true)
+    
+    # Generate a polygon for each center point
+    hexagons = Vector{Polygon}()
+    
+    for center in centers
+        # For each center, create a hexagon with the calculated dimensions
+        vertices = Vector{Point2{Float64}}()
+        
+        # Create a flat-topped hexagon (pointy sides)
+        for i in 0:5
+            angle = 2π * i / 6
+            x = center[1] + side_length * cos(angle)
+            y = center[2] + side_length * sin(angle)
+            push!(vertices, Point2{Float64}(x, y))
+        end
+        
+        push!(hexagons, Polygon(vertices))
+    end
+    
+    return hexagons
 end

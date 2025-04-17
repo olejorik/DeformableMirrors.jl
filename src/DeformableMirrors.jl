@@ -13,18 +13,22 @@ export PDM30_37,
     set_working_aperture!,
     actuators,
     pdmplot,
-    pdmplot!
+    pdmplot!,
+    mmdmplot,
+    mmdmplot!
 
 
 const PDM30_37 = PDM(hexagonal_grid_hexnums(3, 4.3), 30.0, [22.0], 4.3)
+
+# Convert mils to mm for pitch and gap
+const mil_to_mm = 0.0254
+
+# Create honeycomb of hexagons with 3 layers (37 actuators), 70mil pitch, 8mil gaps
 const MMDM15_37 = MMDM(
-    [
-        Polygon([Point2(p[1], p[2]) for p in polygon]) for
-        polygon in [[(0.0, 0.0), (1.0, 0.0), (0.5, 0.866)] for _ in 1:37]
-    ],
+    honeycomb_hexagons(3, mil_to_mm * 70, mil_to_mm * 8),
     15.0,
     [10.0],
-    70 * 0.0254,
+    pitch_mm,
 )
 
 end
